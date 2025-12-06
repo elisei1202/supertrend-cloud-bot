@@ -117,7 +117,7 @@ class BybitClient:
     async def get_klines(
         self,
         symbol: str,
-        interval: str = "240",
+        interval: str = "15",
         limit: int = 400
     ) -> List[List]:
         """

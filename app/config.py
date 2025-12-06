@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     TIMEFRAME: str = "15"  # 15m in minutes
     CANDLES_LIMIT: int = 400
     
-    # SuperTrend Parameters (default for 4h chart)
+    # SuperTrend Parameters
     ST1_PERIOD: int = 10
     ST1_MULTIPLIER: float = 3.0
     ST2_PERIOD: int = 10
