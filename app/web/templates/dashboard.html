@@ -243,6 +243,10 @@
                     const pnlColor = pos.unrealized_pnl > 0 ? 'text-green-400' : 
                                     pos.unrealized_pnl < 0 ? 'text-red-400' : 'text-gray-400';
                     
+                    // Calculate candle close time in local timezone
+                    const candleCloseTime = pos.last_candle_time ? 
+                        new Date(pos.last_candle_time + pos.timeframe_ms) : null;
+                    
                     return `
                         <tr class="hover:bg-white/5 transition-colors">
                             <td class="px-6 py-4 font-medium">${pos.symbol}</td>
@@ -252,7 +256,7 @@
                             <td class="px-6 py-4 ${pnlColor} font-medium">${pos.unrealized_pnl.toFixed(2)} USDT</td>
                             <td class="px-6 py-4 ${zoneColor}">${pos.zone}</td>
                             <td class="px-6 py-4 text-sm">${pos.last_signal}</td>
-                            <td class="px-6 py-4 text-sm text-gray-400">${pos.last_update ? new Date(pos.last_update).toLocaleTimeString() : '-'}</td>
+                            <td class="px-6 py-4 text-sm text-gray-400">${candleCloseTime ? candleCloseTime.toLocaleTimeString() : '-'}</td>
                         </tr>
                     `;
                 }).join('');

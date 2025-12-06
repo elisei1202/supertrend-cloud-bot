@@ -95,7 +95,9 @@ async def get_positions():
             "unrealized_pnl": state.unrealized_pnl,
             "zone": state.current_zone,
             "last_signal": state.last_signal,
-            "last_update": state.last_update.isoformat() if state.last_update else None
+            "last_update": state.last_update.isoformat() if state.last_update else None,
+            "last_candle_time": state.last_candle_time,
+            "timeframe_ms": int(settings.TIMEFRAME) * 60 * 1000
         })
     
     return {"positions": positions}
