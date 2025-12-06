@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuration - SuperTrend Cloud Bot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 min-h-screen text-white">
+    
+    <header class="border-b border-white/10 backdrop-blur-xl bg-white/5">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <h1 class="text-xl font-bold">⚙️ Configuration</h1>
+                <a href="/" class="text-purple-400 hover:text-purple-300">← Back to Dashboard</a>
+            </div>
+        </div>
+    </header>
+    
+    <main class="container mx-auto px-6 py-8 max-w-2xl">
+        
+        <div class="bg-white/10 backdrop-blur-xl rounded-2xl p-8 border border-white/10">
+            
+            <div class="mb-6">
+                <div class="bg-yellow-500/20 border border-yellow-500/50 rounded-lg p-4 mb-6">
+                    <p class="text-sm text-yellow-200">
+                        ⚠️ Configuration changes require bot restart to take effect. 
+                        Currently, settings are loaded from environment variables.
+                    </p>
+                </div>
+            </div>
+            
+            <form id="config-form" class="space-y-6">
+                
+                <!-- Trading Symbols -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">
+                        Trading Symbols
+                    </label>
+                    <input 
+                        type="text" 
+                        name="symbols"
+                        value="{{ settings.symbols }}"
+                        class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        placeholder="BTCUSDT,ETHUSDT,BNBUSDT"
+                    >
+                    <p class="text-xs text-gray-400 mt-1">Comma-separated list of symbols</p>
+                </div>
+                
+                <!-- Position Size -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">
+                        Position Size (USDT)
+                    </label>
+                    <input 
+                        type="number" 
+                        name="position_size"
+                        value="{{ settings.position_size }}"
+                        step="1"
+                        min="5"
+                        class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    >
+                    <p class="text-xs text-gray-400 mt-1">Amount in USDT per trade</p>
+                </div>
+                
+                <!-- Leverage -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">
+                        Leverage
+                    </label>
+                    <input 
+                        type="number" 
+                        name="leverage"
+                        value="{{ settings.leverage }}"
+                        step="1"
+                        min="1"
+                        max="100"
+                        class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    >
+                    <p class="text-xs text-gray-400 mt-1">Leverage (1-100x, ISOLATED mode)</p>
+                </div>
+                
+                <hr class="border-white/10">
+                
+                <!-- SuperTrend 1 -->
+                <div>
+                    <h3 class="font-semibold mb-3">SuperTrend 1 Parameters</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm text-gray-400 mb-2">Period</label>
+                            <input 
+                                type="number" 
+                                name="st1_period"
+                                value="{{ settings.st1_period }}"
+                                class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            >
+                        </div>
+                        <div>
+                            <label class="block text-sm text-gray-400 mb-2">Multiplier</label>
+                            <input 
+                                type="number" 
+                                name="st1_multiplier"
+                                value="{{ settings.st1_multiplier }}"
+                                step="0.1"
+                                class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            >
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- SuperTrend 2 -->
+                <div>
+                    <h3 class="font-semibold mb-3">SuperTrend 2 Parameters</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm text-gray-400 mb-2">Period</label>
+                            <input 
+                                type="number" 
+                                name="st2_period"
+                                value="{{ settings.st2_period }}"
+                                class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            >
+                        </div>
+                        <div>
+                            <label class="block text-sm text-gray-400 mb-2">Multiplier</label>
+                            <input 
+                                type="number" 
+                                name="st2_multiplier"
+                                value="{{ settings.st2_multiplier }}"
+                                step="0.1"
+                                class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            >
+                        </div>
+                    </div>
+                </div>
+                
+                <hr class="border-white/10">
+                
+                <!-- Current Values Display -->
+                <div class="bg-purple-500/10 border border-purple-500/30 rounded-lg p-4">
+                    <h4 class="font-medium mb-2">Current Defaults (4h Chart)</h4>
+                    <p class="text-sm text-gray-300">ST1: Period 10, Multiplier 3.0</p>
+                    <p class="text-sm text-gray-300">ST2: Period 10, Multiplier 6.0</p>
+                    <p class="text-xs text-gray-400 mt-2">
+                        These are recommended values from TradingView strategy.
+                    </p>
+                </div>
+                
+                <button 
+                    type="submit"
+                    class="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-medium transition-all"
+                >
+                    Save Configuration
+                </button>
+                
+            </form>
+            
+        </div>
+        
+    </main>
+    
+    <script>
+        document.getElementById('config-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData);
+            
+            try {
+                const response = await fetch('/api/config/update', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                alert(result.message);
+                
+            } catch (error) {
+                alert('Error saving configuration: ' + error.message);
+            }
+        });
+    </script>
+</body>
+</html>

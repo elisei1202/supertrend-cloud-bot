@@ -1,0 +1,33 @@
+services:
+  - type: web
+    name: supertrend-cloud-bot
+    runtime: python
+    region: frankfurt
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: BYBIT_API_KEY
+        sync: false
+      - key: BYBIT_API_SECRET
+        sync: false
+      - key: SYMBOLS
+        value: BTCUSDT,ETHUSDT,BNBUSDT,SOLUSDT,XRPUSDT
+      - key: POSITION_SIZE_USDT
+        value: "10"
+      - key: LEVERAGE
+        value: "20"
+      - key: ST1_PERIOD
+        value: "10"
+      - key: ST1_MULTIPLIER
+        value: "3.0"
+      - key: ST2_PERIOD
+        value: "10"
+      - key: ST2_MULTIPLIER
+        value: "6.0"
+      - key: TIMEFRAME
+        value: "240"
+      - key: CANDLES_LIMIT
+        value: "400"
+      - key: BYBIT_BASE_URL
+        value: https://api.bybit.com

@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SuperTrend Cloud Bot - Mobile</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gradient-to-b from-slate-900 to-purple-900 min-h-screen text-white">
+    
+    <!-- Header -->
+    <header class="sticky top-0 bg-slate-900/95 backdrop-blur-xl border-b border-white/10 z-50">
+        <div class="px-4 py-4">
+            <div class="flex items-center justify-between mb-4">
+                <h1 class="text-lg font-bold">SuperTrend Cloud</h1>
+                <a href="/" class="text-sm text-purple-400">🖥️ Desktop</a>
+            </div>
+            
+            <!-- Trading Toggle -->
+            <button id="mobile-toggle-btn" class="w-full py-4 rounded-xl font-bold text-lg transition-all">
+                Loading...
+            </button>
+        </div>
+    </header>
+    
+    <!-- Main Content -->
+    <main class="px-4 py-6 space-y-4">
+        
+        <!-- Status Card -->
+        <div class="bg-white/10 backdrop-blur-xl rounded-2xl p-4 border border-white/10">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-xs text-gray-400 mb-1">Connection</p>
+                    <p id="mobile-connection" class="font-semibold">Checking...</p>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-400 mb-1">Timeframe</p>
+                    <p class="font-semibold">4h</p>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-400 mb-1">Leverage</p>
+                    <p class="font-semibold">20x</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Force Close Button -->
+        <button id="mobile-force-close" class="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl font-medium">
+            ⚠️ Force Close All
+        </button>
+        
+        <!-- Positions List -->
+        <div id="mobile-positions" class="space-y-3">
+            <div class="text-center py-8 text-gray-400">
+                Loading positions...
+            </div>
+        </div>
+        
+    </main>
+    
+    <script>
+        let tradingEnabled = false;
+        
+        async function fetchStatus() {
+            try {
+                const response = await fetch('/api/status');
+                const data = await response.json();
+                
+                tradingEnabled = data.trading_enabled;
+                
+                const toggleBtn = document.getElementById('mobile-toggle-btn');
+                const connText = document.getElementById('mobile-connection');
+                
+                if (data.trading_enabled) {
+                    toggleBtn.textContent = '🟢 Trading ON - Tap to Stop';
+                    toggleBtn.className = 'w-full py-4 rounded-xl font-bold text-lg transition-all bg-red-600';
+                } else {
+                    toggleBtn.textContent = '⚪ Trading OFF - Tap to Start';
+                    toggleBtn.className = 'w-full py-4 rounded-xl font-bold text-lg transition-all bg-green-600';
+                }
+                
+                connText.textContent = data.connection_ok ? '✅ Connected' : '❌ Disconnected';
+                connText.className = data.connection_ok ? 'font-semibold text-green-400' : 'font-semibold text-red-400';
+                
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+        
+        async function fetchPositions() {
+            try {
+                const response = await fetch('/api/positions');
+                const data = await response.json();
+                
+                const container = document.getElementById('mobile-positions');
+                
+                if (!data.positions || data.positions.length === 0) {
+                    container.innerHTML = '<div class="text-center py-8 text-gray-400">No positions</div>';
+                    return;
+                }
+                
+                container.innerHTML = data.positions.map(pos => {
+                    const stateColor = pos.pos_state === 'LONG' ? 'bg-green-600' : 
+                                      pos.pos_state === 'SHORT' ? 'bg-red-600' : 'bg-gray-600';
+                    
+                    const zoneColor = pos.zone === 'OVER' ? 'text-green-400' : 
+                                     pos.zone === 'UNDER' ? 'text-red-400' : 'text-yellow-400';
+                    
+                    const pnlColor = pos.unrealized_pnl > 0 ? 'text-green-400' : 
+                                    pos.unrealized_pnl < 0 ? 'text-red-400' : 'text-gray-400';
+                    
+                    return `
+                        <div class="bg-white/10 backdrop-blur-xl rounded-2xl p-4 border border-white/10">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="flex items-center space-x-2">
+                                    <h3 class="text-lg font-bold">${pos.symbol}</h3>
+                                    <span class="${stateColor} px-3 py-1 rounded-full text-xs font-bold">
+                                        ${pos.pos_state}
+                                    </span>
+                                </div>
+                                <div class="text-right">
+                                    <p class="${pnlColor} font-bold text-lg">${pos.unrealized_pnl.toFixed(2)}</p>
+                                    <p class="text-xs text-gray-400">USDT</p>
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-3 gap-3 text-sm">
+                                <div>
+                                    <p class="text-gray-400 text-xs mb-1">Qty</p>
+                                    <p class="font-medium">${pos.qty.toFixed(4)}</p>
+                                </div>
+                                <div>
+                                    <p class="text-gray-400 text-xs mb-1">Entry</p>
+                                    <p class="font-medium">${pos.entry_price > 0 ? pos.entry_price.toFixed(2) : '-'}</p>
+                                </div>
+                                <div>
+                                    <p class="text-gray-400 text-xs mb-1">Zone</p>
+                                    <p class="${zoneColor} font-bold">${pos.zone}</p>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-3 pt-3 border-t border-white/10">
+                                <p class="text-xs text-gray-400">${pos.last_signal}</p>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+        
+        document.getElementById('mobile-toggle-btn').addEventListener('click', async () => {
+            try {
+                const endpoint = tradingEnabled ? '/api/trading/stop' : '/api/trading/start';
+                await fetch(endpoint, { method: 'POST' });
+                await fetchStatus();
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        });
+        
+        document.getElementById('mobile-force-close').addEventListener('click', async () => {
+            if (confirm('Close all positions?')) {
+                try {
+                    const response = await fetch('/api/trading/force-close-all', { method: 'POST' });
+                    const data = await response.json();
+                    alert(data.message);
+                    await fetchPositions();
+                } catch (error) {
+                    console.error('Error:', error);
+                }
+            }
+        });
+        
+        fetchStatus();
+        fetchPositions();
+        setInterval(fetchStatus, 5000);
+        setInterval(fetchPositions, 3000);
+    </script>
+</body>
+</html>
