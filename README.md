@@ -229,7 +229,7 @@ Botul afișează loguri detaliate:
 
 - **Backend**: FastAPI (Python async)
 - **Exchange API**: Bybit V5 Unified Trading
-- **Indicators**: pandas, numpy, pandas-ta
+- **Indicators**: pandas, numpy (custom SuperTrend implementation)
 - **Frontend**: HTML + Tailwind CSS + Vanilla JS
 - **Deploy**: Render (Web Service)
 
