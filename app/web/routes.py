@@ -15,7 +15,8 @@ async def dashboard(request: Request):
     return templates.TemplateResponse("dashboard.html", {
         "request": request,
         "timeframe": "4h",
-        "candles": settings.CANDLES_LIMIT
+        "candles": settings.CANDLES_LIMIT,
+        "leverage": settings.LEVERAGE
     })
 
 
@@ -23,7 +24,8 @@ async def dashboard(request: Request):
 async def mobile_view(request: Request):
     """Mobile optimized view"""
     return templates.TemplateResponse("mobile.html", {
-        "request": request
+        "request": request,
+        "leverage": settings.LEVERAGE
     })
 
 
