@@ -21,7 +21,7 @@ async def lifespan(app: FastAPI):
     # Startup
     logger.info("🚀 Starting SuperTrend Cloud Bot...")
     logger.info(f"Symbols: {settings.symbol_list}")
-    logger.info(f"Timeframe: {settings.TIMEFRAME}m (4h)")
+    logger.info(f"Timeframe: {settings.TIMEFRAME}m ({settings.timeframe_display})")
     logger.info(f"Leverage: {settings.LEVERAGE}x ISOLATED")
     logger.info(f"Position Size: {settings.POSITION_SIZE_USDT} USDT")
     

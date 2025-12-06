@@ -14,7 +14,7 @@ async def dashboard(request: Request):
     """Dashboard principal - desktop view"""
     return templates.TemplateResponse("dashboard.html", {
         "request": request,
-        "timeframe": "4h",
+        "timeframe": settings.timeframe_display,
         "candles": settings.CANDLES_LIMIT,
         "leverage": settings.LEVERAGE
     })
@@ -25,6 +25,7 @@ async def mobile_view(request: Request):
     """Mobile optimized view"""
     return templates.TemplateResponse("mobile.html", {
         "request": request,
+        "timeframe": settings.timeframe_display,
         "leverage": settings.LEVERAGE
     })
 
@@ -54,7 +55,7 @@ async def get_status():
     return {
         "trading_enabled": trading_state.trading_enabled,
         "connection_ok": trading_state.connection_ok,
-        "timeframe": "4h",
+        "timeframe": settings.timeframe_display,
         "candles_used": settings.CANDLES_LIMIT,
         "bot_running": bot_controller.is_running
     }

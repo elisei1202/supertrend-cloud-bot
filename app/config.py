@@ -12,8 +12,8 @@ class Settings(BaseSettings):
     # Trading Config
     SYMBOLS: str = "BTCUSDT,ETHUSDT,BNBUSDT,SOLUSDT,XRPUSDT"
     POSITION_SIZE_USDT: float = 10.0
-    LEVERAGE: int = 20
-    TIMEFRAME: str = "240"  # 4h in minutes
+    LEVERAGE: int = 10
+    TIMEFRAME: str = "15"  # 15m in minutes
     CANDLES_LIMIT: int = 400
     
     # SuperTrend Parameters (default for 4h chart)
@@ -33,6 +33,18 @@ class Settings(BaseSettings):
     @property
     def symbol_list(self) -> List[str]:
         return [s.strip() for s in self.SYMBOLS.split(",") if s.strip()]
+    
+    @property
+    def timeframe_display(self) -> str:
+        """Convert timeframe minutes to human-readable format (15m, 1h, 4h, etc.)"""
+        minutes = int(self.TIMEFRAME)
+        if minutes < 60:
+            return f"{minutes}m"
+        elif minutes == 60:
+            return "1h"
+        else:
+            hours = minutes // 60
+            return f"{hours}h"
 
 
 settings = Settings()
