@@ -48,11 +48,6 @@
             </div>
         </div>
         
-        <!-- Force Close Button -->
-        <button id="mobile-force-close" class="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl font-medium">
-            ⚠️ Force Close All
-        </button>
-        
         <!-- Positions List -->
         <div id="mobile-positions" class="space-y-3">
             <div class="text-center py-8 text-gray-400">
@@ -162,19 +157,6 @@
                 await fetchStatus();
             } catch (error) {
                 console.error('Error:', error);
-            }
-        });
-        
-        document.getElementById('mobile-force-close').addEventListener('click', async () => {
-            if (confirm('Close all positions?')) {
-                try {
-                    const response = await fetch('/api/trading/force-close-all', { method: 'POST' });
-                    const data = await response.json();
-                    alert(data.message);
-                    await fetchPositions();
-                } catch (error) {
-                    console.error('Error:', error);
-                }
             }
         });
         

@@ -120,16 +120,6 @@ async def stop_trading():
     return {"status": "success", "trading_enabled": False}
 
 
-@router.post("/api/trading/force-close-all")
-async def force_close_all():
-    """Force close all positions"""
-    try:
-        await bot_controller.force_close_all()
-        return {"status": "success", "message": "All positions closed"}
-    except Exception as e:
-        return {"status": "error", "message": str(e)}
-
-
 @router.post("/api/config/update")
 async def update_config(data: dict):
     """Update configuration and restart bot to apply changes"""

@@ -112,13 +112,6 @@
             </div>
         </div>
         
-        <!-- Force Close Button -->
-        <div class="mb-6">
-            <button id="force-close-btn" class="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-medium transition-all glow-red">
-                ⚠️ Force Close All Positions
-            </button>
-        </div>
-        
         <!-- Positions Table -->
         <div class="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden">
             <div class="px-6 py-4 border-b border-white/10">
@@ -281,21 +274,6 @@
                 }
             } catch (error) {
                 console.error('Error toggling trading:', error);
-            }
-        });
-        
-        // Force close all
-        document.getElementById('force-close-btn').addEventListener('click', async () => {
-            if (confirm('Are you sure you want to close all positions?')) {
-                try {
-                    const response = await fetch('/api/trading/force-close-all', { method: 'POST' });
-                    const data = await response.json();
-                    
-                    alert(data.message);
-                    await fetchPositions();
-                } catch (error) {
-                    console.error('Error force closing:', error);
-                }
             }
         });
         
