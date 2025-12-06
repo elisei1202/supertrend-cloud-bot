@@ -70,17 +70,8 @@ class BotController:
         )
         
         if not klines:
-            logger.error(f"[{symbol}] No klines received from Bybit (empty list)")
+            logger.error(f"[{symbol}] No klines received from Bybit")
             return pd.DataFrame()
-        
-        logger.info(f"[{symbol}] Received {len(klines)} klines from Bybit for timeframe={settings.TIMEFRAME}")
-        
-        # Extract first and last timestamp for logging
-        first_ts = int(klines[0][0]) // 1000
-        last_ts = int(klines[-1][0]) // 1000
-        first_dt = datetime.utcfromtimestamp(first_ts)
-        last_dt = datetime.utcfromtimestamp(last_ts)
-        logger.info(f"[{symbol}] Klines range: first_ts={first_ts} ({first_dt} UTC) | last_ts={last_ts} ({last_dt} UTC)")
         
         # Convert to DataFrame
         # Bybit returns: [startTime, openPrice, highPrice, lowPrice, closePrice, volume, turnover]
@@ -160,17 +151,15 @@ class BotController:
     async def process_symbol(self, symbol: str):
         """Procesează un simbol: fetch data, calculate indicators, run state machine"""
         try:
-            logger.info(f"[{symbol}] ===== Process symbol START =====")
-            
             # Fetch klines
             df = await self.fetch_and_process_klines(symbol)
             
             if df.empty:
-                logger.warning(f"[{symbol}] Empty DataFrame after fetch_and_process_klines → skipping symbol")
+                logger.warning(f"[{symbol}] Empty DataFrame → skipping")
                 return
             
             if len(df) < 50:
-                logger.warning(f"[{symbol}] Insufficient candles: {len(df)} < 50 → skipping symbol")
+                logger.warning(f"[{symbol}] Insufficient candles: {len(df)} < 50 → skipping")
                 return
             
             # Check if new candle closed - use last CLOSED candle, not the current open one
@@ -183,25 +172,19 @@ class BotController:
             # If last candle is still open, use the previous one (last closed candle)
             if latest_candle_time + timeframe_ms >= current_time_ms:
                 if len(df) < 2:
-                    logger.warning(f"[{symbol}] Only one candle available and it's still open → skipping")
                     return
                 latest_candle_time = int(df.iloc[-2]['timestamp'])
-                logger.info(f"[{symbol}] Last candle is still open, using penultimate closed candle")
             
-            latest_dt_utc = datetime.utcfromtimestamp(latest_candle_time / 1000.0)
-            logger.info(f"[{symbol}] Latest closed candle timestamp={latest_candle_time} ({latest_dt_utc} UTC)")
-            
+            # Check if this is a new closed candle
             if symbol in self.last_candle_times:
                 if latest_candle_time == self.last_candle_times[symbol]:
-                    prev_dt_utc = datetime.utcfromtimestamp(self.last_candle_times[symbol] / 1000.0)
-                    logger.info(f"[{symbol}] Same closed candle as last run ({latest_candle_time} / {prev_dt_utc} UTC) → skipping update")
+                    # Same candle, skip
                     return
                 else:
-                    prev_dt_utc = datetime.utcfromtimestamp(self.last_candle_times[symbol] / 1000.0)
-                    logger.info(f"[{symbol}] New closed candle detected: prev_ts={self.last_candle_times[symbol]} ({prev_dt_utc} UTC) → new_ts={latest_candle_time} ({latest_dt_utc} UTC)")
+                    # New candle detected
+                    logger.info(f"[{symbol}] New candle closed - processing")
             
             self.last_candle_times[symbol] = latest_candle_time
-            logger.info(f"[{symbol}] last_candle_times updated to {latest_candle_time} ({latest_dt_utc} UTC)")
             
             # Calculate SuperTrend Cloud
             upper_cloud, lower_cloud = calculate_supertrend_cloud(
@@ -217,29 +200,24 @@ class BotController:
             current_upper = upper_cloud.iloc[-1]
             current_lower = lower_cloud.iloc[-1]
             current_zone = get_zone(current_close, current_upper, current_lower)
-            logger.info(f"[{symbol}] SuperTrend Cloud zone={current_zone} | close={current_close} | upper={current_upper} | lower={current_lower}")
             
             # Get current price (ticker) with fallback
             ticker = await self.client.get_ticker(symbol)
             if ticker:
                 current_price = float(ticker.get('lastPrice', current_close))
             else:
-                logger.warning(f"[{symbol}] Using candle close as fallback price")
                 current_price = current_close
-            logger.info(f"[{symbol}] Using current_price={current_price} (ticker fallback={'YES' if not ticker else 'NO'})")
             
             # Update position from exchange BEFORE processing signal
-            logger.info(f"[{symbol}] Syncing position from exchange BEFORE state machine...")
             sync_ok = await self.update_position_from_exchange(symbol)
             if not sync_ok:
-                logger.warning(f"[{symbol}] Position sync failed, proceeding with cached state")
+                logger.warning(f"[{symbol}] Position sync failed")
             
             # Get position state
             state = trading_state.get_position(symbol)
             state.current_zone = current_zone
             state.last_candle_time = latest_candle_time
             state.last_update = datetime.now()
-            logger.info(f"[{symbol}] State timestamp updated: last_candle_time={state.last_candle_time} | last_update={state.last_update.isoformat()}")
             
             # Run state machine
             success, signal = await self.state_machine.process_signal(
@@ -248,27 +226,23 @@ class BotController:
                 current_price=current_price,
                 trading_enabled=trading_state.trading_enabled
             )
-            logger.info(f"[{symbol}] StateMachine result: success={success} | signal='{signal}' | pos_state={state.pos_state} | qty={state.qty}")
             
-            # Update position from exchange AFTER order execution if there was a trade signal
+            # Log only if there's a trade signal or error
             if signal not in ["No signal", "Holding", "Initializing"]:
-                logger.info(f"[{symbol}] Trade signal detected ('{signal}') → waiting 1s then resyncing position from exchange...")
+                logger.info(f"[{symbol}] Signal: {signal} | Zone: {current_zone} | State: {state.pos_state}")
                 await asyncio.sleep(1.0)  # Wait for order to fill
                 post_sync_ok = await self.update_position_from_exchange(symbol)
-                logger.info(f"[{symbol}] Post-trade position sync result: {post_sync_ok}")
                 if not post_sync_ok:
                     logger.warning(f"[{symbol}] Post-trade position sync failed")
-            
-            logger.info(f"[{symbol}] Zone: {current_zone} | State: {state.pos_state} | Signal: {signal}")
-            logger.info(f"[{symbol}] ===== Process symbol END =====")
+            elif not success:
+                logger.error(f"[{symbol}] StateMachine failed | Zone: {current_zone} | Signal: {signal}")
             
         except Exception as e:
-            logger.error(f"[{symbol}] Processing error: {type(e).__name__}: {e}", exc_info=True)
+            logger.error(f"[{symbol}] Processing error: {type(e).__name__}: {e}")
     
     async def trading_loop(self):
         """Main trading loop - procesează toate simbolurile"""
         logger.info("🚀 Trading loop started")
-        logger.info(f"[Loop] Starting trading loop | timeframe={settings.TIMEFRAME} | symbols={settings.symbol_list}")
         
         iteration = 0
         
@@ -276,21 +250,24 @@ class BotController:
             try:
                 iteration += 1
                 self.loop_iteration = iteration
-                logger.info(f"[Loop] Iteration #{iteration} started at {datetime.now().isoformat()}")
                 
                 # Process all symbols in parallel
                 tasks = [self.process_symbol(symbol) for symbol in settings.symbol_list]
                 results = await asyncio.gather(*tasks, return_exceptions=True)
                 
-                # Count successful and log exceptions
+                # Count successful and log result
                 successful = sum(1 for r in results if not isinstance(r, Exception))
-                logger.info(f"[Loop] Iteration #{iteration} finished | processed={successful}/{len(settings.symbol_list)} symbols")
+                errors = sum(1 for r in results if isinstance(r, Exception))
                 
-                # Log any exceptions
-                for i, result in enumerate(results):
-                    if isinstance(result, Exception):
-                        symbol = settings.symbol_list[i]
-                        logger.error(f"[{symbol}] Task exception: {type(result).__name__}: {result}")
+                if errors > 0:
+                    logger.error(f"[Loop] Iteration #{iteration} | Success: {successful}/{len(settings.symbol_list)} | Errors: {errors}")
+                    # Log exceptions
+                    for i, result in enumerate(results):
+                        if isinstance(result, Exception):
+                            symbol = settings.symbol_list[i]
+                            logger.error(f"[{symbol}] Exception: {type(result).__name__}: {result}")
+                else:
+                    logger.info(f"[Loop] Iteration #{iteration} | Success: {successful}/{len(settings.symbol_list)}")
                 
                 # Wait before next iteration (check every 60 seconds for new candles)
                 await asyncio.sleep(60)
@@ -299,7 +276,7 @@ class BotController:
                 logger.info("Trading loop cancelled")
                 break
             except Exception as e:
-                logger.error(f"[Loop] Fatal error in trading_loop: {type(e).__name__}: {e}")
+                logger.error(f"[Loop] Fatal error: {type(e).__name__}: {e}")
                 await asyncio.sleep(60)
         
         logger.info("🛑 Trading loop stopped")
