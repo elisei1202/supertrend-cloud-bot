@@ -30,19 +30,15 @@ class BotController:
         
         for symbol in settings.symbol_list:
             try:
-                # Set margin mode to ISOLATED
-                margin_ok = await self.client.switch_margin_mode(symbol, "ISOLATED_MARGIN")
-                await asyncio.sleep(0.2)
-                
-                # Set leverage
+                # Set leverage (margin mode not needed for Unified Account)
                 leverage_ok = await self.client.set_leverage(symbol, settings.LEVERAGE)
                 await asyncio.sleep(0.2)
                 
-                if margin_ok and leverage_ok:
-                    logger.info(f"[{symbol}] Initialized with {settings.LEVERAGE}x ISOLATED")
+                if leverage_ok:
+                    logger.info(f"[{symbol}] Initialized with {settings.LEVERAGE}x leverage")
                 else:
                     init_errors.append(symbol)
-                    logger.warning(f"[{symbol}] Partial initialization (margin={margin_ok}, leverage={leverage_ok})")
+                    logger.warning(f"[{symbol}] Failed to set leverage")
                     
             except Exception as e:
                 init_errors.append(symbol)
@@ -110,10 +106,15 @@ class BotController:
         
         if positions:
             pos = positions[0]
-            size = float(pos.get('size', 0))
+            # Handle empty strings from API
+            size_str = pos.get('size', '0') or '0'
+            entry_str = pos.get('avgPrice', '0') or '0'
+            pnl_str = pos.get('unrealisedPnl', '0') or '0'
+            
+            size = float(size_str)
             side = pos.get('side', '')
-            entry_price = float(pos.get('avgPrice', 0))
-            unrealized_pnl = float(pos.get('unrealisedPnl', 0))
+            entry_price = float(entry_str)
+            unrealized_pnl = float(pnl_str)
             
             if size > 0:
                 new_state = "LONG" if side == "Buy" else "SHORT"
