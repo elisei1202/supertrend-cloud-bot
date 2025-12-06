@@ -173,10 +173,23 @@ class BotController:
                 logger.warning(f"[{symbol}] Insufficient candles: {len(df)} < 50 → skipping symbol")
                 return
             
-            # Check if new candle closed
+            # Check if new candle closed - use last CLOSED candle, not the current open one
+            current_time_ms = int(datetime.now().timestamp() * 1000)
+            timeframe_ms = int(settings.TIMEFRAME) * 60 * 1000  # Convert minutes to milliseconds
+            
+            # Check if last candle is closed (startTime + timeframe < current_time)
             latest_candle_time = int(df.iloc[-1]['timestamp'])
+            
+            # If last candle is still open, use the previous one (last closed candle)
+            if latest_candle_time + timeframe_ms >= current_time_ms:
+                if len(df) < 2:
+                    logger.warning(f"[{symbol}] Only one candle available and it's still open → skipping")
+                    return
+                latest_candle_time = int(df.iloc[-2]['timestamp'])
+                logger.info(f"[{symbol}] Last candle is still open, using penultimate closed candle")
+            
             latest_dt_utc = datetime.utcfromtimestamp(latest_candle_time / 1000.0)
-            logger.info(f"[{symbol}] Latest candle timestamp={latest_candle_time} ({latest_dt_utc} UTC)")
+            logger.info(f"[{symbol}] Latest closed candle timestamp={latest_candle_time} ({latest_dt_utc} UTC)")
             
             if symbol in self.last_candle_times:
                 if latest_candle_time == self.last_candle_times[symbol]:
