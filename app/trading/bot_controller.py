@@ -270,6 +270,12 @@ class BotController:
                 else:
                     logger.info(f"[Loop] Iteration #{iteration} | Success: {successful}/{len(settings.symbol_list)}")
                 
+                # Update PnL for all symbols with open positions (even if no new candle)
+                for symbol in settings.symbol_list:
+                    state = trading_state.get_position(symbol)
+                    if state.pos_state != "FLAT":
+                        await self.update_position_from_exchange(symbol)
+                
                 # Wait before next iteration (check every 60 seconds for new candles)
                 await asyncio.sleep(60)
                 
