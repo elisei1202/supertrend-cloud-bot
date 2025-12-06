@@ -22,6 +22,7 @@ class BotController:
         self.is_running = False
         self.last_candle_times: Dict[str, int] = {}
         self.loop_iteration = 0
+        self.start_time = None
     
     async def initialize(self):
         """Inițializează botul: setează leverage și margin mode pentru toate simbolurile"""
@@ -287,6 +288,7 @@ class BotController:
             logger.warning("Bot is already running")
             return
         
+        self.start_time = datetime.now()
         self.is_running = True
         await self.initialize()
         

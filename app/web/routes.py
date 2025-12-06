@@ -61,6 +61,25 @@ async def get_status():
     }
 
 
+@router.get("/api/bot-stats")
+async def get_bot_stats():
+    """Get bot uptime and iteration count"""
+    from datetime import datetime
+    if bot_controller.start_time:
+        uptime_seconds = int((datetime.now() - bot_controller.start_time).total_seconds())
+        hours = uptime_seconds // 3600
+        minutes = (uptime_seconds % 3600) // 60
+        seconds = uptime_seconds % 60
+        uptime_str = f"{hours:02d}:{minutes:02d}:{seconds:02d}"
+    else:
+        uptime_str = "00:00:00"
+    
+    return {
+        "uptime": uptime_str,
+        "iteration": bot_controller.loop_iteration
+    }
+
+
 @router.get("/api/positions")
 async def get_positions():
     """Get all positions"""
