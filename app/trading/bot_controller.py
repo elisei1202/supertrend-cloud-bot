@@ -321,6 +321,28 @@ class BotController:
         logger.info("Stopping bot...")
         self.is_running = False
     
+    async def restart(self):
+        """Repornește botul (stop + start)"""
+        logger.info("🔄 Restarting bot...")
+        was_running = self.is_running
+        trading_was_enabled = trading_state.trading_enabled
+        
+        # Stop bot
+        await self.stop()
+        
+        # Wait a bit for loop to stop
+        await asyncio.sleep(2)
+        
+        # Clear last candle times to force re-initialization
+        self.last_candle_times.clear()
+        
+        # Restart bot
+        if was_running:
+            await self.start()
+            # Restore trading enabled state
+            trading_state.trading_enabled = trading_was_enabled
+            logger.info("✅ Bot restarted successfully")
+    
     async def force_close_all(self):
         """Închide forțat toate pozițiile active"""
         logger.warning("⚠️ Force closing all positions...")

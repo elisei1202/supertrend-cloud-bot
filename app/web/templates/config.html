@@ -25,11 +25,10 @@
         
         <div class="bg-white/10 backdrop-blur-xl rounded-2xl p-8 border border-white/10">
             
-            <div class="mb-6">
-                <div class="bg-yellow-500/20 border border-yellow-500/50 rounded-lg p-4 mb-6">
-                    <p class="text-sm text-yellow-200">
-                        ⚠️ Configuration changes require bot restart to take effect. 
-                        Currently, settings are loaded from environment variables.
+                <div class="mb-6">
+                <div class="bg-green-500/20 border border-green-500/50 rounded-lg p-4 mb-6">
+                    <p class="text-sm text-green-200">
+                        ✅ Configuration changes will automatically restart the bot to apply new settings.
                     </p>
                 </div>
             </div>
@@ -178,7 +177,16 @@
                 });
                 
                 const result = await response.json();
-                alert(result.message);
+                
+                if (result.status === 'success') {
+                    alert(result.message);
+                    // Redirect to dashboard after 1 second
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 1000);
+                } else {
+                    alert('Error: ' + result.message);
+                }
                 
             } catch (error) {
                 alert('Error saving configuration: ' + error.message);

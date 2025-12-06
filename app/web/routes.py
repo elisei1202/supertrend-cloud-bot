@@ -110,9 +110,33 @@ async def force_close_all():
 
 @router.post("/api/config/update")
 async def update_config(data: dict):
-    """Update configuration (requires restart to apply)"""
-    # This is a simplified version - in production, you'd save to file
-    return {
-        "status": "success",
-        "message": "Configuration updated. Restart bot to apply changes."
-    }
+    """Update configuration and restart bot to apply changes"""
+    try:
+        # Update settings directly
+        if "symbols" in data:
+            settings.SYMBOLS = data["symbols"]
+        if "position_size" in data:
+            settings.POSITION_SIZE_USDT = float(data["position_size"])
+        if "leverage" in data:
+            settings.LEVERAGE = int(data["leverage"])
+        if "st1_period" in data:
+            settings.ST1_PERIOD = int(data["st1_period"])
+        if "st1_multiplier" in data:
+            settings.ST1_MULTIPLIER = float(data["st1_multiplier"])
+        if "st2_period" in data:
+            settings.ST2_PERIOD = int(data["st2_period"])
+        if "st2_multiplier" in data:
+            settings.ST2_MULTIPLIER = float(data["st2_multiplier"])
+        
+        # Restart bot to apply new settings
+        await bot_controller.restart()
+        
+        return {
+            "status": "success",
+            "message": "Configuration updated and bot restarted successfully."
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": f"Error updating configuration: {str(e)}"
+        }
