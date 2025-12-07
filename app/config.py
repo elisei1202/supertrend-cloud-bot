@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     
     # Trading Config
     SYMBOLS: str = "BTCUSDT,ETHUSDT,BNBUSDT,SOLUSDT,XRPUSDT"
-    POSITION_SIZE_USDT: float = 100
+    POSITION_SIZE_USDT: float = 100.0
     LEVERAGE: int = 20
     TIMEFRAME: str = "30"  # 30m in minutes
     CANDLES_LIMIT: int = 400

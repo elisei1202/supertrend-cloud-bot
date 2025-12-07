@@ -14,9 +14,9 @@ services:
       - key: SYMBOLS
         value: BTCUSDT,ETHUSDT,BNBUSDT,SOLUSDT,XRPUSDT
       - key: POSITION_SIZE_USDT
-        value: "10"
+        value: "100"
       - key: LEVERAGE
-        value: "10"
+        value: "20"
       - key: ST1_PERIOD
         value: "10"
       - key: ST1_MULTIPLIER
