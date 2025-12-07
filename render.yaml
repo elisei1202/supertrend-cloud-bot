@@ -26,7 +26,7 @@ services:
       - key: ST2_MULTIPLIER
         value: "6.0"
       - key: TIMEFRAME
-        value: "15"
+        value: "30"
       - key: CANDLES_LIMIT
         value: "400"
       - key: BYBIT_BASE_URL
