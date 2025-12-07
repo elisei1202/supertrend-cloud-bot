@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     SYMBOLS: str = "BTCUSDT,ETHUSDT,BNBUSDT,SOLUSDT,XRPUSDT"
     POSITION_SIZE_USDT: float = 100
     LEVERAGE: int = 20
-    TIMEFRAME: str = "15"  # 15m in minutes
+    TIMEFRAME: str = "30"  # 30m in minutes
     CANDLES_LIMIT: int = 400
     
     # SuperTrend Parameters
